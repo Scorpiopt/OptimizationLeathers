@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "PeYSWczBOCSJ9UYP8+ulz5iaT3U4u9CuIqv6jIB75FRf4Jghg2IMoVs/WCO1n112/eR9qnlJDPtFEHQIxx5pOQ==",
+  "dgSpecHash": "Q07BApU5N4SBKpP4qdhgOjT42FSxr1eUqU+/ka39enh6/mfXRkoOcbfacwsCv87TiccJ/3ohjmGVAdPI5aM0kg==",
   "success": true,
-  "projectFilePath": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\Optimization Leathers - C# Edition\\1.3\\Source\\OptimizationLeather\\OptimizationLeather.csproj",
+  "projectFilePath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\OptimizationLeathers\\1.3\\Source\\OptimizationLeather\\OptimizationLeather.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Vova\\.nuget\\packages\\krafs.publicizer\\1.0.0\\krafs.publicizer.1.0.0.nupkg.sha512",
     "C:\\Users\\Vova\\.nuget\\packages\\krafs.rimworld.ref\\1.3.3109-beta\\krafs.rimworld.ref.1.3.3109-beta.nupkg.sha512",

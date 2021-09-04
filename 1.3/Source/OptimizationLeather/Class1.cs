@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,30 @@ using Verse;
 
 namespace OptimizationLeather
 {
+    [StaticConstructorOnStartup]
+    public static class HarmonyPatches
+    {
+        static HarmonyPatches()
+        {
+            var harmony = new Harmony("OptimizationLeather.Mod");
+            harmony.PatchAll();
+        }
+    }
+
+    [HarmonyPatch(typeof(Thing), "SetStuffDirect")]
+    public static class Patch_SetStuffDirect
+    {
+        public static void Prefix(Thing __instance, ref ThingDef newStuff)
+        {
+            if (Startup.allDisallowedLeathers.Contains(newStuff))
+            {
+                var chosenLeather = Startup.allowedLeathers.RandomElement();
+                Log.Message("[Optimization: Leather] " + __instance + " has a forbidden stuff assigned, changing " + newStuff + " to " + chosenLeather);
+                newStuff = chosenLeather;
+            }
+        }
+    }
+
     [DefOf]
     public static class OL_DefOf
     {
@@ -31,7 +56,7 @@ namespace OptimizationLeather
              OL_DefOf.Leather_Human,
         };
 
-        private static HashSet<ThingDef> allDisallowedLeathers = new HashSet<ThingDef>();
+        public static HashSet<ThingDef> allDisallowedLeathers = new HashSet<ThingDef>();
         static Startup()
         {
             AssignLeathers();
@@ -47,6 +72,7 @@ namespace OptimizationLeather
                     var leatherDef = thingDef.race?.leatherDef;
                     if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
                     {
+                        allDisallowedLeathers.Add(leatherDef);
                         if (thingDef.race.baseBodySize >= 1f)
                         {
                             thingDef.race.leatherDef = OL_DefOf.Leather_Heavy;
@@ -59,7 +85,6 @@ namespace OptimizationLeather
                         {
                             thingDef.race.leatherDef = OL_DefOf.Leather_Light;
                         }
-                        allDisallowedLeathers.Add(thingDef.race.leatherDef);
                     }
                 }
             }
@@ -72,6 +97,7 @@ namespace OptimizationLeather
                 DefDatabase<ThingDef>.Remove(thingDef);
                 ThingCategoryDefOf.Leathers.childThingDefs.Remove(thingDef);
             }
+            PawnApparelGenerator.allApparelPairs.RemoveAll(x => allDisallowedLeathers.Contains(x.stuff));
         }
         private static bool UsedInRecipe(this ThingDef leatherDef)
         {

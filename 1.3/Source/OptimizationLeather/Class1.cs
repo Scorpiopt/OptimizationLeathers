@@ -42,6 +42,8 @@ namespace OptimizationLeather
         public static ThingDef Leather_Lizard;
         public static ThingDef Leather_Heavy;
         public static ThingDef Leather_Human;
+        public static ThingDef Leather_Legend;
+        public static ThingDef Leather_Thrumbo;
     }
     [StaticConstructorOnStartup]
     public static class Startup
@@ -54,6 +56,7 @@ namespace OptimizationLeather
              OL_DefOf.Leather_Lizard,
              OL_DefOf.Leather_Heavy,
              OL_DefOf.Leather_Human,
+             OL_DefOf.Leather_Legend
         };
 
         public static HashSet<ThingDef> allDisallowedLeathers = new HashSet<ThingDef>();
@@ -62,6 +65,13 @@ namespace OptimizationLeather
             AssignLeathers();
             RemoveLeathers();
         }
+
+        public static Dictionary<string, ThingDef> leathersToConvert = new Dictionary<string, ThingDef>
+        {
+            {"VFEV_Leather_Fenrir", OL_DefOf.Leather_Legend },
+            {"VFEV_Leather_Lothurr", OL_DefOf.Leather_Legend },
+            {"VFEV_Leather_Njorun", OL_DefOf.Leather_Legend },
+        };
 
         private static void AssignLeathers()
         {
@@ -73,21 +83,41 @@ namespace OptimizationLeather
                     if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
                     {
                         allDisallowedLeathers.Add(leatherDef);
-                        if (thingDef.race.baseBodySize >= 1f)
+                        if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
                         {
-                            thingDef.race.leatherDef = OL_DefOf.Leather_Heavy;
+                            SwapLeathers(thingDef, newLeather);
+                        }
+                        else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo)
+                        {
+                            SwapLeathers(thingDef, OL_DefOf.Leather_Legend);
+                        }
+                        else if (thingDef.race.baseBodySize >= 1f)
+                        {
+                            SwapLeathers(thingDef, OL_DefOf.Leather_Heavy);
                         }
                         else if (thingDef.race.baseBodySize >= 0.5f)
                         {
-                            thingDef.race.leatherDef = OL_DefOf.Leather_Plain;
+                            SwapLeathers(thingDef, OL_DefOf.Leather_Plain);
                         }
                         else
                         {
-                            thingDef.race.leatherDef = OL_DefOf.Leather_Light;
+                            SwapLeathers(thingDef, OL_DefOf.Leather_Light);
                         }
                     }
                 }
             }
+        }
+
+        private static void SwapLeathers(ThingDef animal, ThingDef newLeather)
+        {
+            var oldLeather = animal.race.leatherDef;
+            animal.race.leatherDef = newLeather;
+            var compShearable = animal.GetCompProperties<CompProperties_Shearable>();
+            if (compShearable != null && compShearable.woolDef == oldLeather)
+            {
+                compShearable.woolDef = newLeather;
+            }
+            //Log.Message("Swapped leather in " + animal + " to " + newLeather);
         }
 
         private static void RemoveLeathers()

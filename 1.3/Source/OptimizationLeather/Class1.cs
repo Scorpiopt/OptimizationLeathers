@@ -75,17 +75,26 @@ namespace OptimizationLeather
 
         private static void AssignLeathers()
         {
+            ThingDef chitinLeather = null;
             foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
             {
                 if (thingDef.race != null)
                 {
-                    var leatherDef = thingDef.race?.leatherDef;
+                    var leatherDef = thingDef.race.leatherDef;
+                    if (thingDef.race.Insect && leatherDef != null && chitinLeather is null)
+                    {
+                        chitinLeather = leatherDef;
+                    }
                     if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
                     {
                         allDisallowedLeathers.Add(leatherDef);
                         if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
-                        {
+                        {    
                             SwapLeathers(thingDef, newLeather);
+                        }
+                        else if (thingDef.race.Insect && leatherDef != chitinLeather)
+                        {
+                            SwapLeathers(thingDef, chitinLeather);
                         }
                         else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo)
                         {

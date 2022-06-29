@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+	<Operation Class="PatchOperationFindMod">
+		<mods>
+			<li>Vanilla Fishing Expanded - Fishing Treasures AddOn</li>
+		</mods>
+		<match Class="PatchOperationSequence">
+			<operations>
+				<li Class="PatchOperationReplace">
+					<xpath>/Defs/VCE_Fishing.FishDef[defName="VCEF_SpecialLeather_Thrumbo"]/thingDef</xpath>
+					<value>
+						<thingDef>Leather_Legend</thingDef>    
+					</value>
+				</li>
+			</operations>
+		</match>
+	</Operation>
+
+</Patch>

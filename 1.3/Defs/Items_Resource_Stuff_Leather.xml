@@ -25,5 +25,29 @@
     </stuffProps>
   </ThingDef>
 
-
+  <ThingDef ParentName="LeatherBase">
+    <defName>Leather_Chitin</defName>
+    <label>chitin</label>
+    <description>An extremely versatile material and equal to steel , commonly found in a form of insect exoskeletons.</description>
+    <graphicData>
+      <texPath>Things/Item/Resource/Chitin</texPath>
+      <graphicClass>Graphic_StackCount</graphicClass>
+    </graphicData>
+    <statBases>
+      <MarketValue>6</MarketValue>
+      <Mass>0.55</Mass>
+      <StuffPower_Armor_Sharp>0.92</StuffPower_Armor_Sharp>
+      <StuffPower_Armor_Blunt>0.18</StuffPower_Armor_Blunt>
+      <StuffPower_Armor_Heat>0.27</StuffPower_Armor_Heat>
+      <StuffPower_Insulation_Cold>5</StuffPower_Insulation_Cold>
+      <StuffPower_Insulation_Heat>0</StuffPower_Insulation_Heat>
+      <SharpDamageMultiplier>1.0</SharpDamageMultiplier>
+      <BluntDamageMultiplier>1.0</BluntDamageMultiplier>
+    </statBases>
+    <stuffProps>
+      <color>(197, 142, 75)</color>
+      <commonality>0</commonality>
+    </stuffProps>
+  </ThingDef>
+  
 </Defs>

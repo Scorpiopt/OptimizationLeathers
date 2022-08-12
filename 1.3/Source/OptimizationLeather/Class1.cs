@@ -44,6 +44,7 @@ namespace OptimizationLeather
         public static ThingDef Leather_Human;
         public static ThingDef Leather_Legend;
         public static ThingDef Leather_Thrumbo;
+        public static ThingDef Leather_Chitin;
     }
     [StaticConstructorOnStartup]
     public static class Startup
@@ -56,7 +57,8 @@ namespace OptimizationLeather
              OL_DefOf.Leather_Lizard,
              OL_DefOf.Leather_Heavy,
              OL_DefOf.Leather_Human,
-             OL_DefOf.Leather_Legend
+             OL_DefOf.Leather_Legend,
+             OL_DefOf.Leather_Chitin
         };
 
         public static HashSet<ThingDef> allDisallowedLeathers = new HashSet<ThingDef>();
@@ -75,26 +77,29 @@ namespace OptimizationLeather
 
         private static void AssignLeathers()
         {
-            ThingDef chitinLeather = null;
             foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
             {
                 if (thingDef.race != null)
                 {
                     var leatherDef = thingDef.race.leatherDef;
-                    if (thingDef.race.Insect && leatherDef != null && chitinLeather is null)
+                    if (leatherDef is null)
                     {
-                        chitinLeather = leatherDef;
+                        if (thingDef.race.Insect)
+                        {
+                            SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
+                            thingDef.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
+                        }
                     }
-                    if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
+                    else if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
                     {
                         allDisallowedLeathers.Add(leatherDef);
                         if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
                         {    
                             SwapLeathers(thingDef, newLeather);
                         }
-                        else if (thingDef.race.Insect && leatherDef != chitinLeather)
+                        else if (thingDef.race.Insect)
                         {
-                            SwapLeathers(thingDef, chitinLeather);
+                            SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
                         }
                         else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo)
                         {

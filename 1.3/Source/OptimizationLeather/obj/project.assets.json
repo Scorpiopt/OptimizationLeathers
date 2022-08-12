@@ -2,14 +2,14 @@
   "version": 3,
   "targets": {
     ".NETFramework,Version=v4.7.2": {
-      "Krafs.Publicizer/1.0.1": {
+      "Krafs.Publicizer/1.0.3": {
         "type": "package",
         "build": {
           "build/Krafs.Publicizer.props": {},
           "build/Krafs.Publicizer.targets": {}
         }
       },
-      "Krafs.Rimworld.Ref/1.3.3200": {
+      "Krafs.Rimworld.Ref/1.3.3389": {
         "type": "package",
         "compile": {
           "ref/net472/Assembly-CSharp-firstpass.dll": {},
@@ -89,28 +89,33 @@
           "ref/net472/UnityEngine.WindModule.dll": {},
           "ref/net472/UnityEngine.XRModule.dll": {},
           "ref/net472/UnityEngine.dll": {},
+          "ref/net472/com.rlabrecque.steamworks.net.dll": {},
           "ref/net472/mscorlib.dll": {}
         }
       },
-      "Lib.Harmony/2.1.1": {
+      "Lib.Harmony/2.2.2": {
         "type": "package",
         "compile": {
-          "lib/net472/0Harmony.dll": {}
+          "lib/net472/0Harmony.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net472/0Harmony.dll": {}
+          "lib/net472/0Harmony.dll": {
+            "related": ".xml"
+          }
         }
       }
     },
     ".NETFramework,Version=v4.7.2/win": {
-      "Krafs.Publicizer/1.0.1": {
+      "Krafs.Publicizer/1.0.3": {
         "type": "package",
         "build": {
           "build/Krafs.Publicizer.props": {},
           "build/Krafs.Publicizer.targets": {}
         }
       },
-      "Krafs.Rimworld.Ref/1.3.3200": {
+      "Krafs.Rimworld.Ref/1.3.3389": {
         "type": "package",
         "compile": {
           "ref/net472/Assembly-CSharp-firstpass.dll": {},
@@ -190,28 +195,33 @@
           "ref/net472/UnityEngine.WindModule.dll": {},
           "ref/net472/UnityEngine.XRModule.dll": {},
           "ref/net472/UnityEngine.dll": {},
+          "ref/net472/com.rlabrecque.steamworks.net.dll": {},
           "ref/net472/mscorlib.dll": {}
         }
       },
-      "Lib.Harmony/2.1.1": {
+      "Lib.Harmony/2.2.2": {
         "type": "package",
         "compile": {
-          "lib/net472/0Harmony.dll": {}
+          "lib/net472/0Harmony.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net472/0Harmony.dll": {}
+          "lib/net472/0Harmony.dll": {
+            "related": ".xml"
+          }
         }
       }
     },
     ".NETFramework,Version=v4.7.2/win-x64": {
-      "Krafs.Publicizer/1.0.1": {
+      "Krafs.Publicizer/1.0.3": {
         "type": "package",
         "build": {
           "build/Krafs.Publicizer.props": {},
           "build/Krafs.Publicizer.targets": {}
         }
       },
-      "Krafs.Rimworld.Ref/1.3.3200": {
+      "Krafs.Rimworld.Ref/1.3.3389": {
         "type": "package",
         "compile": {
           "ref/net472/Assembly-CSharp-firstpass.dll": {},
@@ -291,28 +301,33 @@
           "ref/net472/UnityEngine.WindModule.dll": {},
           "ref/net472/UnityEngine.XRModule.dll": {},
           "ref/net472/UnityEngine.dll": {},
+          "ref/net472/com.rlabrecque.steamworks.net.dll": {},
           "ref/net472/mscorlib.dll": {}
         }
       },
-      "Lib.Harmony/2.1.1": {
+      "Lib.Harmony/2.2.2": {
         "type": "package",
         "compile": {
-          "lib/net472/0Harmony.dll": {}
+          "lib/net472/0Harmony.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net472/0Harmony.dll": {}
+          "lib/net472/0Harmony.dll": {
+            "related": ".xml"
+          }
         }
       }
     },
     ".NETFramework,Version=v4.7.2/win-x86": {
-      "Krafs.Publicizer/1.0.1": {
+      "Krafs.Publicizer/1.0.3": {
         "type": "package",
         "build": {
           "build/Krafs.Publicizer.props": {},
           "build/Krafs.Publicizer.targets": {}
         }
       },
-      "Krafs.Rimworld.Ref/1.3.3200": {
+      "Krafs.Rimworld.Ref/1.3.3389": {
         "type": "package",
         "compile": {
           "ref/net472/Assembly-CSharp-firstpass.dll": {},
@@ -392,45 +407,51 @@
           "ref/net472/UnityEngine.WindModule.dll": {},
           "ref/net472/UnityEngine.XRModule.dll": {},
           "ref/net472/UnityEngine.dll": {},
+          "ref/net472/com.rlabrecque.steamworks.net.dll": {},
           "ref/net472/mscorlib.dll": {}
         }
       },
-      "Lib.Harmony/2.1.1": {
+      "Lib.Harmony/2.2.2": {
         "type": "package",
         "compile": {
-          "lib/net472/0Harmony.dll": {}
+          "lib/net472/0Harmony.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net472/0Harmony.dll": {}
+          "lib/net472/0Harmony.dll": {
+            "related": ".xml"
+          }
         }
       }
     }
   },
   "libraries": {
-    "Krafs.Publicizer/1.0.1": {
-      "sha512": "HJBbfHNKz/RrbpDgrpMfnmatIdBGHI5BLh1E77+GFRw1e/W6Cy2Uan9OwDawlYgX8N3dn1EoeabOylQLBNQ7/w==",
+    "Krafs.Publicizer/1.0.3": {
+      "sha512": "VdxH2jsKzGBa9/UzRN8ZK2+PHVj5q1F6hAYzxnetpA4xap815CtoXq+WazrpT2E5AejeR5tyYlhFSzvrObcOxw==",
       "type": "package",
-      "path": "krafs.publicizer/1.0.1",
+      "path": "krafs.publicizer/1.0.3",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "build/Krafs.Publicizer.props",
         "build/Krafs.Publicizer.targets",
         "build/net472/Publicizer.dll",
-        "krafs.publicizer.1.0.1.nupkg.sha512",
+        "krafs.publicizer.1.0.3.nupkg.sha512",
         "krafs.publicizer.nuspec"
       ]
     },
-    "Krafs.Rimworld.Ref/1.3.3200": {
-      "sha512": "vjo/xgY9rXwem6RCrYAMCk1uf7j74S5eB1A3h/mbckFPCcCZQFAEy97ozinyC8XefpLJmbIbVXeauUwHJhYE8Q==",
+    "Krafs.Rimworld.Ref/1.3.3389": {
+      "sha512": "6wL5qhEtuqk9Nit+STjcmJtz8wZbw/UKM17FCppBI0EaVYtLqUg5ioN8BBzwrG57VUnkISERqtwgDBeDa5OlQw==",
       "type": "package",
-      "path": "krafs.rimworld.ref/1.3.3200",
+      "path": "krafs.rimworld.ref/1.3.3389",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "LICENSE.txt",
+        "LICENSE.md",
+        "README.md",
         "icon.png",
-        "krafs.rimworld.ref.1.3.3200.nupkg.sha512",
+        "krafs.rimworld.ref.1.3.3389.nupkg.sha512",
         "krafs.rimworld.ref.nuspec",
         "ref/net472/Assembly-CSharp-firstpass.dll",
         "ref/net472/Assembly-CSharp.dll",
@@ -509,19 +530,20 @@
         "ref/net472/UnityEngine.WindModule.dll",
         "ref/net472/UnityEngine.XRModule.dll",
         "ref/net472/UnityEngine.dll",
+        "ref/net472/com.rlabrecque.steamworks.net.dll",
         "ref/net472/mscorlib.dll"
       ]
     },
-    "Lib.Harmony/2.1.1": {
-      "sha512": "CZiVcq01bVIjL2baWW5SVGZWyd6ew8adFp4BB2bzZfIGcWkTEto0G9sKu+9HDrEd75qBq3EHnZxx/gizi4NnqA==",
+    "Lib.Harmony/2.2.2": {
+      "sha512": "70KvWz+DiUELxafsYL/LHxA/jH3PDWeApLo/VwtnrpTvRWQ/eUdPfS/l5funmhZWOy41QXw6UjVv+6C57Nx77A==",
       "type": "package",
-      "path": "lib.harmony/2.1.1",
+      "path": "lib.harmony/2.2.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "HarmonyLogo.png",
         "LICENSE",
-        "lib.harmony.2.1.1.nupkg.sha512",
+        "lib.harmony.2.2.2.nupkg.sha512",
         "lib.harmony.nuspec",
         "lib/net35/0Harmony.dll",
         "lib/net35/0Harmony.xml",
@@ -533,6 +555,8 @@
         "lib/net48/0Harmony.xml",
         "lib/net5.0/0Harmony.dll",
         "lib/net5.0/0Harmony.xml",
+        "lib/net6.0/0Harmony.dll",
+        "lib/net6.0/0Harmony.xml",
         "lib/netcoreapp3.0/0Harmony.dll",
         "lib/netcoreapp3.0/0Harmony.xml",
         "lib/netcoreapp3.1/0Harmony.dll",
@@ -542,9 +566,9 @@
   },
   "projectFileDependencyGroups": {
     ".NETFramework,Version=v4.7.2": [
-      "Krafs.Publicizer >= 1.0.1",
-      "Krafs.Rimworld.Ref >= 1.3.3200",
-      "Lib.Harmony >= 2.1.1"
+      "Krafs.Publicizer >= 1.0.3",
+      "Krafs.Rimworld.Ref >= 1.3.3389",
+      "Lib.Harmony >= 2.2.2"
     ]
   },
   "packageFolders": {
@@ -584,15 +608,15 @@
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
             "suppressParent": "All",
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           },
           "Krafs.Rimworld.Ref": {
             "target": "Package",
-            "version": "[1.3.3200, )"
+            "version": "[1.3.3389, )"
           },
           "Lib.Harmony": {
             "target": "Package",
-            "version": "[2.1.1, )"
+            "version": "[2.2.2, )"
           }
         }
       }

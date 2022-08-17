@@ -88,6 +88,10 @@ namespace OptimizationLeather
                         {
                             SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
                             thingDef.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
+                            if (thingDef.butcherProducts != null)
+                            {
+                                thingDef.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                            }
                         }
                     }
                     else if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
@@ -100,6 +104,10 @@ namespace OptimizationLeather
                         else if (thingDef.race.Insect)
                         {
                             SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
+                            if (thingDef.butcherProducts != null)
+                            {
+                                thingDef.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                            }
                         }
                         else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo)
                         {

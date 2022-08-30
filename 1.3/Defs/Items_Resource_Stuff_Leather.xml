@@ -45,9 +45,18 @@
       <BluntDamageMultiplier>1.0</BluntDamageMultiplier>
     </statBases>
     <stuffProps>
-      <color>(197, 142, 75)</color>
+      <color>(156,148,125)</color>
       <commonality>0</commonality>
+      <categories>
+        <li>Chitin</li>
+      </categories>
     </stuffProps>
   </ThingDef>
-  
+
+  <StuffCategoryDef>
+    <defName>Chitin</defName>
+    <label>chitin</label>
+    <destroySoundSmall>BuildingDestroyed_Soft_Small</destroySoundSmall>
+    <destroySoundMedium>BuildingDestroyed_Soft_Medium</destroySoundMedium>
+  </StuffCategoryDef>  
 </Defs>

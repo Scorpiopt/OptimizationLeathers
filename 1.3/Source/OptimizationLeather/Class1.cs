@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using Verse;
 
 namespace OptimizationLeather
@@ -45,6 +46,7 @@ namespace OptimizationLeather
         public static ThingDef Leather_Legend;
         public static ThingDef Leather_Thrumbo;
         public static ThingDef Leather_Chitin;
+        public static StuffCategoryDef Chitin;
     }
     [StaticConstructorOnStartup]
     public static class Startup
@@ -64,8 +66,16 @@ namespace OptimizationLeather
         public static HashSet<ThingDef> allDisallowedLeathers = new HashSet<ThingDef>();
         static Startup()
         {
+            LeathersOptimizationMod.settings = LoadedModManager.GetMod<LeathersOptimizationMod>().GetSettings<LeathersOptimizationSettings>();
+            ApplySettings();
+            LoadedModManager.GetMod<LeathersOptimizationMod>().WriteSettings();
+        }
+        public static void ApplySettings()
+        {
+            Log.Message("ApplySettings");
             AssignLeathers();
             RemoveLeathers();
+            AssignStuff();
         }
 
         public static Dictionary<string, ThingDef> leathersToConvert = new Dictionary<string, ThingDef>
@@ -82,11 +92,11 @@ namespace OptimizationLeather
                 if (thingDef.race != null)
                 {
                     var leatherDef = thingDef.race.leatherDef;
-                    if (leatherDef is null)
+                    if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(thingDef, out var leatherDef2) && leatherDef2 != null && leatherDef2 != leatherDef)
                     {
-                        if (thingDef.race.Insect)
+                        SwapLeathers(thingDef, leatherDef2);
+                        if (leatherDef is null && thingDef.race.Insect)
                         {
-                            SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
                             thingDef.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
                             if (thingDef.butcherProducts != null)
                             {
@@ -94,39 +104,82 @@ namespace OptimizationLeather
                             }
                         }
                     }
-                    else if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
+                    else
                     {
-                        allDisallowedLeathers.Add(leatherDef);
-                        if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
-                        {    
-                            SwapLeathers(thingDef, newLeather);
-                        }
-                        else if (thingDef.race.Insect)
+                        if (leatherDef is null)
                         {
-                            SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
-                            if (thingDef.butcherProducts != null)
+                            if (thingDef.race.Insect)
                             {
-                                thingDef.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                                SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
+                                thingDef.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
+                                if (thingDef.butcherProducts != null)
+                                {
+                                    thingDef.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                                }
                             }
                         }
-                        else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo)
+                        else if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
                         {
-                            SwapLeathers(thingDef, OL_DefOf.Leather_Legend);
-                        }
-                        else if (thingDef.race.baseBodySize >= 1f)
-                        {
-                            SwapLeathers(thingDef, OL_DefOf.Leather_Heavy);
-                        }
-                        else if (thingDef.race.baseBodySize >= 0.5f)
-                        {
-                            SwapLeathers(thingDef, OL_DefOf.Leather_Plain);
-                        }
-                        else
-                        {
-                            SwapLeathers(thingDef, OL_DefOf.Leather_Light);
+                            allDisallowedLeathers.Add(leatherDef);
+                            if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
+                            {
+                                SwapLeathers(thingDef, newLeather);
+                            }
+                            else if (thingDef.race.Insect)
+                            {
+                                SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
+                                if (thingDef.butcherProducts != null)
+                                {
+                                    thingDef.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                                }
+                            }
+                            else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo)
+                            {
+                                SwapLeathers(thingDef, OL_DefOf.Leather_Legend);
+                            }
+                            else if (thingDef.race.baseBodySize >= 1f)
+                            {
+                                SwapLeathers(thingDef, OL_DefOf.Leather_Heavy);
+                            }
+                            else if (thingDef.race.baseBodySize >= 0.5f)
+                            {
+                                SwapLeathers(thingDef, OL_DefOf.Leather_Plain);
+                            }
+                            else
+                            {
+                                SwapLeathers(thingDef, OL_DefOf.Leather_Light);
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        public static ThingDef GetDefaultLeather(ThingDef thingDef)
+        {
+            if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
+            {
+                return newLeather;
+            }
+            else if (thingDef.race.Insect)
+            {
+                return OL_DefOf.Leather_Chitin;
+            }
+            else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo || thingDef.race.leatherDef == OL_DefOf.Leather_Legend)
+            {
+                return OL_DefOf.Leather_Legend;
+            }
+            else if (thingDef.race.baseBodySize >= 1f)
+            {
+                return OL_DefOf.Leather_Heavy;
+            }
+            else if (thingDef.race.baseBodySize >= 0.5f)
+            {
+                return OL_DefOf.Leather_Plain;
+            }
+            else
+            {
+                return OL_DefOf.Leather_Light;
             }
         }
 
@@ -139,7 +192,11 @@ namespace OptimizationLeather
             {
                 compShearable.woolDef = newLeather;
             }
-            //Log.Message("Swapped leather in " + animal + " to " + newLeather);
+            if (!LeathersOptimizationMod.settings.animalsByLeathers.ContainsKey(animal))
+            {
+                LeathersOptimizationMod.settings.animalsByLeathers[animal] = newLeather;
+                Log.Message("Swapped leather in " + animal + " to " + newLeather);
+            }
         }
 
         private static void RemoveLeathers()
@@ -165,6 +222,104 @@ namespace OptimizationLeather
                 }
             }
             return false;
+        }
+
+        public static void AssignStuff()
+        {
+            foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
+            {
+                if (thingDef.stuffCategories != null && thingDef.stuffCategories.Where(x => x == StuffCategoryDefOf.Metallic 
+                || x == StuffCategoryDefOf.Woody 
+                || x == StuffCategoryDefOf.Stony).Count() == 3)
+                {
+                    thingDef.stuffCategories.Add(OL_DefOf.Chitin);
+                }
+            }
+        }
+    }
+
+    public class LeathersOptimizationMod : Mod
+    {
+        public static LeathersOptimizationSettings settings;
+        public LeathersOptimizationMod(ModContentPack pack) : base(pack)
+        {
+
+        }
+        public override void DoSettingsWindowContents(Rect inRect)
+        {
+            base.DoSettingsWindowContents(inRect);
+            settings.DoSettingsWindowContents(inRect);
+        }
+
+        public override string SettingsCategory()
+        {
+            return this.Content.Name;
+        }
+
+        public override void WriteSettings()
+        {
+            Startup.ApplySettings();
+            base.WriteSettings();
+        }
+    }
+
+    public class LeathersOptimizationSettings : ModSettings
+    {
+        public Dictionary<ThingDef, ThingDef> animalsByLeathers = new Dictionary<ThingDef, ThingDef>();
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_Collections.Look(ref animalsByLeathers, "animalsByLeathers", LookMode.Def, LookMode.Def);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                if (animalsByLeathers is null)
+                {
+                    animalsByLeathers = new Dictionary<ThingDef, ThingDef>();
+                }
+            }
+        }
+        private Vector2 scrollPosition;
+        int scrollHeightCount = 0;
+        public void DoSettingsWindowContents(Rect inRect)
+        {
+            var defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.race.Humanlike is false 
+                && x.race.leatherDef != null && animalsByLeathers.ContainsKey(x)).ToList();
+            var outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - 50);
+            var viewRect = new Rect(outRect.x, outRect.y, outRect.width - 30, scrollHeightCount);
+            scrollHeightCount = 0;
+            Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
+            var pos = outRect.y;
+            for (var num = 0; num < defs.Count; num++)
+            {
+                var thingDef = defs[num];
+                scrollHeightCount += 24;
+                var labelRect = new Rect(outRect.x, pos + (num * 24), inRect.width - 150 - 30, 24);
+                Widgets.Label(labelRect, thingDef.LabelCap);
+                var selectorRect = new Rect(labelRect.xMax, labelRect.y, 150, 24);
+                if (Widgets.ButtonText(selectorRect, animalsByLeathers[thingDef].LabelCap))
+                {
+                    List<FloatMenuOption> floatMenuOptions = new List<FloatMenuOption>();
+                    foreach (var leather in Startup.allowedLeathers)
+                    {
+                        floatMenuOptions.Add(new FloatMenuOption(leather.LabelCap, delegate
+                        {
+                            animalsByLeathers[thingDef] = leather;
+                        }));
+                    }
+                    Find.WindowStack.Add(new FloatMenu(floatMenuOptions));
+                }
+            }
+            Widgets.EndScrollView();
+
+            var resetButton = new Rect(outRect.width / 2f - Window.CloseButSize.x / 2f, outRect.yMax + 15, Window.CloseButSize.x, Window.CloseButSize.y);
+            if (Widgets.ButtonText(resetButton, "Reset".Translate()))
+            {
+                animalsByLeathers.Clear();
+                foreach (var def in defs)
+                {
+                    animalsByLeathers[def] = Startup.GetDefaultLeather(def);
+                }
+            }
         }
     }
 }

@@ -76,6 +76,13 @@ namespace OptimizationLeather
             AssignLeathers();
             RemoveLeathers();
             AssignStuff();
+            foreach (var animal in LeathersOptimizationMod.settings.animalsByLeathers.Keys.ToList())
+            {
+                if (animal != null)
+                {
+                    LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
+                }
+            }
         }
 
         public static Dictionary<string, ThingDef> leathersToConvert = new Dictionary<string, ThingDef>
@@ -90,7 +97,9 @@ namespace OptimizationLeather
             bool assignedDragonLeather = false;
             foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
             {
-                if (thingDef.race != null)
+                if (thingDef.race != null && 
+                    (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) is false 
+                    || LeathersOptimizationMod.settings.disallowedAnimals[thingDef] is false))
                 {
                     var leatherDef = thingDef.race.leatherDef;
                     if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(thingDef, out var leatherDef2) 
@@ -201,7 +210,12 @@ namespace OptimizationLeather
         }
         public static ThingDef GetDefaultLeather(ThingDef thingDef)
         {
-            if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
+            if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) 
+                && LeathersOptimizationMod.settings.disallowedAnimals[thingDef])
+            {
+                return thingDef.race.leatherDef;
+            }
+            else if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
             {
                 return newLeather;
             }
@@ -318,16 +332,22 @@ namespace OptimizationLeather
 
     public class LeathersOptimizationSettings : ModSettings
     {
+        public Dictionary<ThingDef, bool> disallowedAnimals = new Dictionary<ThingDef, bool>();
         public Dictionary<ThingDef, ThingDef> animalsByLeathers = new Dictionary<ThingDef, ThingDef>();
         public override void ExposeData()
         {
             base.ExposeData();
             Scribe_Collections.Look(ref animalsByLeathers, "animalsByLeathers", LookMode.Def, LookMode.Def);
+            Scribe_Collections.Look(ref disallowedAnimals, "disallowedAnimals", LookMode.Def, LookMode.Value);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (animalsByLeathers is null)
                 {
                     animalsByLeathers = new Dictionary<ThingDef, ThingDef>();
+                }
+                if (disallowedAnimals is null)
+                {
+                    disallowedAnimals = new Dictionary<ThingDef, bool>();
                 }
             }
         }
@@ -346,7 +366,7 @@ namespace OptimizationLeather
             {
                 var thingDef = defs[num];
                 scrollHeightCount += 24;
-                var labelRect = new Rect(outRect.x, pos + (num * 24), inRect.width - 150 - 30, 24);
+                var labelRect = new Rect(outRect.x, pos + (num * 24), inRect.width - 150 - 30 - 30, 24);
                 Widgets.Label(labelRect, thingDef.LabelCap);
                 var selectorRect = new Rect(labelRect.xMax, labelRect.y, 150, 24);
                 if (Widgets.ButtonText(selectorRect, animalsByLeathers[thingDef].LabelCap))
@@ -361,7 +381,18 @@ namespace OptimizationLeather
                     }
                     Find.WindowStack.Add(new FloatMenu(floatMenuOptions));
                 }
+                var enabled = disallowedAnimals.ContainsKey(thingDef) is false || disallowedAnimals[thingDef] is false;
+                Widgets.Checkbox(new Vector2(selectorRect.xMax + 6, selectorRect.y), ref enabled);
+                if (enabled)
+                {
+                    disallowedAnimals[thingDef] = false;
+                }
+                else
+                {
+                    disallowedAnimals[thingDef] = true;
+                }
             }
+
             Widgets.EndScrollView();
 
             var resetButton = new Rect(outRect.width / 2f - Window.CloseButSize.x / 2f, outRect.yMax + 15, Window.CloseButSize.x, Window.CloseButSize.y);

@@ -46,6 +46,7 @@ namespace OptimizationLeather
         public static ThingDef Leather_Legend;
         public static ThingDef Leather_Thrumbo;
         public static ThingDef Leather_Chitin;
+        public static ThingDef Leather_DragonScale;
         public static StuffCategoryDef Chitin;
     }
     [StaticConstructorOnStartup]
@@ -72,7 +73,6 @@ namespace OptimizationLeather
         }
         public static void ApplySettings()
         {
-            Log.Message("ApplySettings");
             AssignLeathers();
             RemoveLeathers();
             AssignStuff();
@@ -87,12 +87,14 @@ namespace OptimizationLeather
 
         private static void AssignLeathers()
         {
+            bool assignedDragonLeather = false;
             foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
             {
                 if (thingDef.race != null)
                 {
                     var leatherDef = thingDef.race.leatherDef;
-                    if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(thingDef, out var leatherDef2) && leatherDef2 != null && leatherDef2 != leatherDef)
+                    if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(thingDef, out var leatherDef2) 
+                        && leatherDef2 != null && leatherDef2 != leatherDef)
                     {
                         SwapLeathers(thingDef, leatherDef2);
                         if (leatherDef is null && thingDef.race.Insect)
@@ -118,12 +120,22 @@ namespace OptimizationLeather
                                 }
                             }
                         }
-                        else if (leatherDef != null && !allowedLeathers.Contains(leatherDef) && !leatherDef.UsedInRecipe())
+                        else if (leatherDef != null && (!allowedLeathers.Contains(leatherDef) 
+                            || leatherDef != GetDefaultLeather(thingDef)))
                         {
-                            allDisallowedLeathers.Add(leatherDef);
-                            if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
+                            if (!allowedLeathers.Contains(leatherDef))
+                            {
+                                allDisallowedLeathers.Add(leatherDef);
+                            }
+                            if (thingDef.race.leatherDef != null 
+                                && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
                             {
                                 SwapLeathers(thingDef, newLeather);
+                            }
+                            else if (thingDef.IsDragon())
+                            {
+                                SwapLeathers(thingDef, OL_DefOf.Leather_DragonScale);
+                                assignedDragonLeather = true;
                             }
                             else if (thingDef.race.Insect)
                             {
@@ -153,13 +165,49 @@ namespace OptimizationLeather
                     }
                 }
             }
+            if (!assignedDragonLeather)
+            {
+                DefDatabase<ThingDef>.Remove(OL_DefOf.Leather_DragonScale);
+            }
         }
 
+        public static List<string> moddedDragonLeathers = new List<string>
+        {
+            "Dragon_Leather",
+            "Rare_Dragon_Leather",
+            "True_Dragon_Leather",
+            "Leather_DragonScale"
+        };
+
+        public static List<string> moddedDragonBodies = new List<string>
+        {
+            "GS_Dragon",
+            "GS_Dragon_Triple_Stryke",
+            "RttR_WingedQuadrupedAnimalWithPawsAndTail",
+            "RttR_QuadWingedQuadrupedAnimalWithPawsAndTail",
+            "RttR_WingedQuadrupedAnimalThreeTails"
+        };
+        public static bool IsDragon(this ThingDef thingDef)
+        {
+            if (thingDef.race.leatherDef != null && moddedDragonLeathers.Contains(thingDef.race.leatherDef.defName))
+            {
+                return true;
+            }
+            else if (thingDef.race.body != null && moddedDragonBodies.Contains(thingDef.race.body.defName))
+            {
+                return true;
+            }
+            return false;
+        }
         public static ThingDef GetDefaultLeather(ThingDef thingDef)
         {
             if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
             {
                 return newLeather;
+            }
+            else if (thingDef.IsDragon())
+            {
+                return OL_DefOf.Leather_DragonScale;
             }
             else if (thingDef.race.Insect)
             {
@@ -192,10 +240,15 @@ namespace OptimizationLeather
             {
                 compShearable.woolDef = newLeather;
             }
+            var compScaleable = animal.comps.FirstOrDefault(x => x.compClass.Name == "CompScaleable");
+            if (compScaleable != null)
+            {
+                Traverse.Create(compScaleable).Field("scaleDef").SetValue(newLeather);
+            }
+
             if (!LeathersOptimizationMod.settings.animalsByLeathers.ContainsKey(animal))
             {
                 LeathersOptimizationMod.settings.animalsByLeathers[animal] = newLeather;
-                Log.Message("Swapped leather in " + animal + " to " + newLeather);
             }
         }
 

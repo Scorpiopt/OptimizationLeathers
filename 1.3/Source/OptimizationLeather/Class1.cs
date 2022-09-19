@@ -97,7 +97,7 @@ namespace OptimizationLeather
             bool assignedDragonLeather = false;
             foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
             {
-                if (thingDef.race != null && 
+                if (thingDef.race != null && thingDef.race.Humanlike is false && 
                     (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) is false 
                     || LeathersOptimizationMod.settings.disallowedAnimals[thingDef] is false))
                 {
@@ -176,7 +176,7 @@ namespace OptimizationLeather
             }
             if (!assignedDragonLeather)
             {
-                DefDatabase<ThingDef>.Remove(OL_DefOf.Leather_DragonScale);
+                allDisallowedLeathers.Add(OL_DefOf.Leather_DragonScale);
             }
         }
 
@@ -210,7 +210,11 @@ namespace OptimizationLeather
         }
         public static ThingDef GetDefaultLeather(ThingDef thingDef)
         {
-            if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) 
+            if (thingDef.race.Humanlike)
+            {
+                return thingDef.race.leatherDef;
+            }
+            else if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) 
                 && LeathersOptimizationMod.settings.disallowedAnimals[thingDef])
             {
                 return thingDef.race.leatherDef;
@@ -271,7 +275,13 @@ namespace OptimizationLeather
             foreach (var thingDef in allDisallowedLeathers)
             {
                 DefDatabase<ThingDef>.Remove(thingDef);
-                ThingCategoryDefOf.Leathers.childThingDefs.Remove(thingDef);
+                if (thingDef.thingCategories != null)
+                {
+                    foreach (var category in thingDef.thingCategories)
+                    {
+                        category.childThingDefs.Remove(thingDef);
+                    }
+                }
             }
             PawnApparelGenerator.allApparelPairs.RemoveAll(x => allDisallowedLeathers.Contains(x.stuff));
         }

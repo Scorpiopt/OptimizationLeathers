@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<ThingDef ParentName="LeatherBase">
+		<defName>Leather_Legend</defName>
+		<label>legend leather</label>
+		<description>Luxurious and extremely hard to aquire, used for its durability and protection.</description>
+		<graphicData>
+			<color>(233,233,233)</color>
+		</graphicData>
+		<statBases>
+			<MarketValue>14.0</MarketValue>
+			<StuffPower_Armor_Sharp>2.08</StuffPower_Armor_Sharp>
+			<StuffPower_Armor_Blunt>0.36</StuffPower_Armor_Blunt>
+			<StuffPower_Insulation_Cold>34</StuffPower_Insulation_Cold>
+			<StuffPower_Insulation_Heat>22</StuffPower_Insulation_Heat>
+		</statBases>
+		<stuffProps>
+			<color>(233,233,233)</color>
+			<commonality>0.0025</commonality>
+			<statFactors>
+				<MaxHitPoints>2.0</MaxHitPoints>
+				<Beauty>8</Beauty>
+			</statFactors>
+		</stuffProps>
+	</ThingDef>
+
+	<ThingDef ParentName="LeatherBase">
+		<defName>Leather_Chitin</defName>
+		<label>chitin</label>
+		<description>An extremely versatile material and equal to steel , commonly found in a form of insect exoskeletons.</description>
+		<graphicData>
+			<texPath>Things/Item/Resource/Chitin</texPath>
+			<graphicClass>Graphic_StackCount</graphicClass>
+		</graphicData>
+		<statBases>
+			<MarketValue>6</MarketValue>
+			<Mass>0.55</Mass>
+			<StuffPower_Armor_Sharp>0.92</StuffPower_Armor_Sharp>
+			<StuffPower_Armor_Blunt>0.18</StuffPower_Armor_Blunt>
+			<StuffPower_Armor_Heat>0.27</StuffPower_Armor_Heat>
+			<StuffPower_Insulation_Cold>5</StuffPower_Insulation_Cold>
+			<StuffPower_Insulation_Heat>0</StuffPower_Insulation_Heat>
+			<SharpDamageMultiplier>1.0</SharpDamageMultiplier>
+			<BluntDamageMultiplier>1.0</BluntDamageMultiplier>
+		</statBases>
+		<stuffProps>
+			<color>(156,148,125)</color>
+			<commonality>0</commonality>
+			<categories>
+				<li>Chitin</li>
+			</categories>
+		</stuffProps>
+	</ThingDef>
+
+	<StuffCategoryDef>
+		<defName>Chitin</defName>
+		<label>chitin</label>
+		<destroySoundSmall>BuildingDestroyed_Soft_Small</destroySoundSmall>
+		<destroySoundMedium>BuildingDestroyed_Soft_Medium</destroySoundMedium>
+	</StuffCategoryDef>
+
+	<ThingDef ParentName="ResourceBase">
+		<defName>Leather_DragonScale</defName>
+		<label>dragon scale</label>
+		<description>A scale shed from a dragon. It's a bit better than steel, can be used as a construction material.</description>
+		<graphicData>
+			<texPath>Things/Item/Resource/Hardscale</texPath>
+			<graphicClass>Graphic_StackCount</graphicClass>
+		</graphicData>
+		<tradeability>Sellable</tradeability>
+		<soundInteract>Metal_Drop</soundInteract>
+		<soundDrop>Metal_Drop</soundDrop>
+		<generateCommonality>0</generateCommonality>
+		<generateAllowChance>0</generateAllowChance>
+		<statBases>
+			<MarketValue>5</MarketValue>
+			<Mass>1</Mass>
+			<StuffPower_Armor_Sharp>1</StuffPower_Armor_Sharp>
+			<StuffPower_Armor_Blunt>0.55</StuffPower_Armor_Blunt>
+			<StuffPower_Armor_Heat>0.35</StuffPower_Armor_Heat>
+			<StuffPower_Insulation_Cold>0</StuffPower_Insulation_Cold>
+			<StuffPower_Insulation_Heat>0</StuffPower_Insulation_Heat>
+			<SharpDamageMultiplier>1.3</SharpDamageMultiplier>
+			<BluntDamageMultiplier>1.3</BluntDamageMultiplier>
+		</statBases>
+		<thingCategories>
+			<li>ResourcesRaw</li>
+		</thingCategories>
+		<stackLimit>75</stackLimit>
+		<stuffProps>
+			<categories>
+				<li>Metallic</li>
+				<li MayRequire="sarg.alphabiomes">AB_ExoticMetals</li>
+			</categories>
+			<color>(140,30,30)</color>
+			<commonality>0</commonality>
+			<constructEffect>ConstructMetal</constructEffect>
+			<soundImpactStuff>BulletImpact_Metal</soundImpactStuff>
+			<soundMeleeHitSharp>MeleeHit_Metal_Sharp</soundMeleeHitSharp>
+			<soundMeleeHitBlunt>MeleeHit_Metal_Blunt</soundMeleeHitBlunt>
+			<statOffsets>
+				<Beauty>7</Beauty>
+			</statOffsets>
+			<statFactors>
+				<MaxHitPoints>3</MaxHitPoints>
+				<Flammability>0.2</Flammability>
+				<Beauty>1.75</Beauty>
+				<WorkToMake>2.5</WorkToMake>
+				<WorkToBuild>2.5</WorkToBuild>
+				<DoorOpenSpeed>0.75</DoorOpenSpeed>
+				<MeleeWeapon_CooldownMultiplier>1.4</MeleeWeapon_CooldownMultiplier>
+			</statFactors>
+		</stuffProps>
+		<terrainAffordanceNeeded>Heavy</terrainAffordanceNeeded>
+	</ThingDef>
+</Defs>

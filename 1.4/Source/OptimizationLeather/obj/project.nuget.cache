@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "BtlNKvkfzKketN7pwHyg+5j9KRfr48AdKFQqLGSemRympq9FaeJcKefdlWwlFhJj120daNF2P1s1aNKFcBwbAg==",
+  "dgSpecHash": "qRzwSJXosh4nZBoc45iyli21+ynE9IY68Jnv21VMwDXme2T3Jloh6yiY4C+Rz3TBy4RUYc/miesBDW4+MtMHpA==",
   "success": true,
   "projectFilePath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\OptimizationLeathers\\1.4\\Source\\OptimizationLeather\\OptimizationLeather.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Vova\\.nuget\\packages\\krafs.publicizer\\2.0.1\\krafs.publicizer.2.0.1.nupkg.sha512",
-    "C:\\Users\\Vova\\.nuget\\packages\\krafs.rimworld.ref\\1.4.3510-beta\\krafs.rimworld.ref.1.4.3510-beta.nupkg.sha512",
+    "C:\\Users\\Vova\\.nuget\\packages\\krafs.rimworld.ref\\1.4.3514-beta\\krafs.rimworld.ref.1.4.3514-beta.nupkg.sha512",
     "C:\\Users\\Vova\\.nuget\\packages\\lib.harmony\\2.2.2\\lib.harmony.2.2.2.nupkg.sha512"
   ],
   "logs": []

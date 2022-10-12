@@ -1,10 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 
@@ -15,7 +12,7 @@ namespace OptimizationLeather
     {
         static HarmonyPatches()
         {
-            var harmony = new Harmony("OptimizationLeather.Mod");
+            Harmony harmony = new Harmony("OptimizationLeather.Mod");
             harmony.PatchAll();
         }
     }
@@ -27,7 +24,7 @@ namespace OptimizationLeather
         {
             if (Startup.allDisallowedLeathers.Contains(newStuff))
             {
-                var chosenLeather = Startup.allowedLeathers.RandomElement();
+                ThingDef chosenLeather = Startup.allowedLeathers.RandomElement();
                 Log.Message("[Optimization: Leather] " + __instance + " has a forbidden stuff assigned, changing " + newStuff + " to " + chosenLeather);
                 newStuff = chosenLeather;
             }
@@ -61,7 +58,8 @@ namespace OptimizationLeather
              OL_DefOf.Leather_Heavy,
              OL_DefOf.Leather_Human,
              OL_DefOf.Leather_Legend,
-             OL_DefOf.Leather_Chitin
+             OL_DefOf.Leather_Chitin,
+             OL_DefOf.Leather_DragonScale,
         };
 
         public static HashSet<ThingDef> allDisallowedLeathers = new HashSet<ThingDef>();
@@ -76,7 +74,7 @@ namespace OptimizationLeather
             AssignLeathers();
             RemoveLeathers();
             AssignStuff();
-            foreach (var animal in LeathersOptimizationMod.settings.animalsByLeathers.Keys.ToList())
+            foreach (ThingDef animal in LeathersOptimizationMod.settings.animalsByLeathers.Keys.ToList())
             {
                 if (animal != null)
                 {
@@ -95,14 +93,14 @@ namespace OptimizationLeather
         private static void AssignLeathers()
         {
             bool assignedDragonLeather = false;
-            foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
+            foreach (ThingDef thingDef in DefDatabase<ThingDef>.AllDefs)
             {
-                if (thingDef.race != null && thingDef.race.Humanlike is false && 
-                    (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) is false 
+                if (thingDef.race != null && thingDef.race.Humanlike is false &&
+                    (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) is false
                     || LeathersOptimizationMod.settings.disallowedAnimals[thingDef] is false))
                 {
-                    var leatherDef = thingDef.race.leatherDef;
-                    if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(thingDef, out var leatherDef2) 
+                    ThingDef leatherDef = thingDef.race.leatherDef;
+                    if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(thingDef, out ThingDef leatherDef2)
                         && leatherDef2 != null && leatherDef2 != leatherDef)
                     {
                         SwapLeathers(thingDef, leatherDef2);
@@ -129,15 +127,11 @@ namespace OptimizationLeather
                                 }
                             }
                         }
-                        else if (leatherDef != null && (!allowedLeathers.Contains(leatherDef) 
+                        else if (leatherDef != null && (!allowedLeathers.Contains(leatherDef)
                             || leatherDef != GetDefaultLeather(thingDef)))
                         {
-                            if (!allowedLeathers.Contains(leatherDef))
-                            {
-                                allDisallowedLeathers.Add(leatherDef);
-                            }
-                            if (thingDef.race.leatherDef != null 
-                                && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
+                            if (thingDef.race.leatherDef != null
+                                && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out ThingDef newLeather))
                             {
                                 SwapLeathers(thingDef, newLeather);
                             }
@@ -214,51 +208,39 @@ namespace OptimizationLeather
             {
                 return thingDef.race.leatherDef;
             }
-            else if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) 
+            else if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef)
                 && LeathersOptimizationMod.settings.disallowedAnimals[thingDef])
             {
                 return thingDef.race.leatherDef;
             }
-            else if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out var newLeather))
+            else if (thingDef.race.leatherDef != null && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out ThingDef newLeather))
             {
                 return newLeather;
             }
-            else if (thingDef.IsDragon())
-            {
-                return OL_DefOf.Leather_DragonScale;
-            }
-            else if (thingDef.race.Insect)
-            {
-                return OL_DefOf.Leather_Chitin;
-            }
-            else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo || thingDef.race.leatherDef == OL_DefOf.Leather_Legend)
-            {
-                return OL_DefOf.Leather_Legend;
-            }
-            else if (thingDef.race.baseBodySize >= 1f)
-            {
-                return OL_DefOf.Leather_Heavy;
-            }
-            else if (thingDef.race.baseBodySize >= 0.5f)
-            {
-                return OL_DefOf.Leather_Plain;
-            }
             else
             {
-                return OL_DefOf.Leather_Light;
+                return thingDef.IsDragon()
+                    ? OL_DefOf.Leather_DragonScale
+                    : thingDef.race.Insect
+                                    ? OL_DefOf.Leather_Chitin
+                                    : thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo || thingDef.race.leatherDef == OL_DefOf.Leather_Legend
+                                                    ? OL_DefOf.Leather_Legend
+                                                    : thingDef.race.baseBodySize >= 1f
+                                                                    ? OL_DefOf.Leather_Heavy
+                                                                    : thingDef.race.baseBodySize >= 0.5f ? OL_DefOf.Leather_Plain : OL_DefOf.Leather_Light;
             }
         }
 
         private static void SwapLeathers(ThingDef animal, ThingDef newLeather)
         {
-            var oldLeather = animal.race.leatherDef;
+            ThingDef oldLeather = animal.race.leatherDef;
             animal.race.leatherDef = newLeather;
-            var compShearable = animal.GetCompProperties<CompProperties_Shearable>();
+            CompProperties_Shearable compShearable = animal.GetCompProperties<CompProperties_Shearable>();
             if (compShearable != null && compShearable.woolDef == oldLeather)
             {
                 compShearable.woolDef = newLeather;
             }
-            var compScaleable = animal.comps.FirstOrDefault(x => x.compClass.Name == "CompScaleable");
+            CompProperties compScaleable = animal.comps.FirstOrDefault(x => x.compClass.Name == "CompScaleable");
             if (compScaleable != null)
             {
                 Traverse.Create(compScaleable).Field("scaleDef").SetValue(newLeather);
@@ -268,16 +250,21 @@ namespace OptimizationLeather
             {
                 LeathersOptimizationMod.settings.animalsByLeathers[animal] = newLeather;
             }
+
+            if (!allDisallowedLeathers.Contains(oldLeather) && !allowedLeathers.Contains(oldLeather) && DefDatabase<ThingDef>.AllDefsListForReading.Contains(oldLeather))
+            {
+                allDisallowedLeathers.Add(oldLeather);
+            }
         }
 
         private static void RemoveLeathers()
         {
-            foreach (var thingDef in allDisallowedLeathers)
+            foreach (ThingDef thingDef in allDisallowedLeathers)
             {
                 DefDatabase<ThingDef>.Remove(thingDef);
                 if (thingDef.thingCategories != null)
                 {
-                    foreach (var category in thingDef.thingCategories)
+                    foreach (ThingCategoryDef category in thingDef.thingCategories)
                     {
                         category.childThingDefs.Remove(thingDef);
                     }
@@ -287,7 +274,7 @@ namespace OptimizationLeather
         }
         private static bool UsedInRecipe(this ThingDef leatherDef)
         {
-            foreach (var recipe in DefDatabase<RecipeDef>.AllDefs)
+            foreach (RecipeDef recipe in DefDatabase<RecipeDef>.AllDefs)
             {
                 if (recipe.ingredients?.Any(x => x.filter.thingDefs?.Contains(leatherDef) ?? false) ?? false)
                 {
@@ -303,10 +290,10 @@ namespace OptimizationLeather
 
         public static void AssignStuff()
         {
-            foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
+            foreach (ThingDef thingDef in DefDatabase<ThingDef>.AllDefs)
             {
-                if (thingDef.stuffCategories != null && thingDef.stuffCategories.Where(x => x == StuffCategoryDefOf.Metallic 
-                || x == StuffCategoryDefOf.Woody 
+                if (thingDef.stuffCategories != null && thingDef.stuffCategories.Where(x => x == StuffCategoryDefOf.Metallic
+                || x == StuffCategoryDefOf.Woody
                 || x == StuffCategoryDefOf.Stony).Count() == 3)
                 {
                     thingDef.stuffCategories.Add(OL_DefOf.Chitin);
@@ -330,7 +317,7 @@ namespace OptimizationLeather
 
         public override string SettingsCategory()
         {
-            return this.Content.Name;
+            return Content.Name;
         }
 
         public override void WriteSettings()
@@ -362,27 +349,27 @@ namespace OptimizationLeather
             }
         }
         private Vector2 scrollPosition;
-        int scrollHeightCount = 0;
+        private int scrollHeightCount = 0;
         public void DoSettingsWindowContents(Rect inRect)
         {
-            var defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.race.Humanlike is false 
+            List<ThingDef> defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.race.Humanlike is false
                 && x.race.leatherDef != null && animalsByLeathers.ContainsKey(x)).ToList();
-            var outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - 50);
-            var viewRect = new Rect(outRect.x, outRect.y, outRect.width - 30, scrollHeightCount);
+            Rect outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - 50);
+            Rect viewRect = new Rect(outRect.x, outRect.y, outRect.width - 30, scrollHeightCount);
             scrollHeightCount = 0;
             Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
-            var pos = outRect.y;
-            for (var num = 0; num < defs.Count; num++)
+            float pos = outRect.y;
+            for (int num = 0; num < defs.Count; num++)
             {
-                var thingDef = defs[num];
+                ThingDef thingDef = defs[num];
                 scrollHeightCount += 24;
-                var labelRect = new Rect(outRect.x, pos + (num * 24), inRect.width - 150 - 30 - 30, 24);
+                Rect labelRect = new Rect(outRect.x, pos + (num * 24), inRect.width - 150 - 30 - 30, 24);
                 Widgets.Label(labelRect, thingDef.LabelCap);
-                var selectorRect = new Rect(labelRect.xMax, labelRect.y, 150, 24);
+                Rect selectorRect = new Rect(labelRect.xMax, labelRect.y, 150, 24);
                 if (Widgets.ButtonText(selectorRect, animalsByLeathers[thingDef].LabelCap))
                 {
                     List<FloatMenuOption> floatMenuOptions = new List<FloatMenuOption>();
-                    foreach (var leather in Startup.allowedLeathers)
+                    foreach (ThingDef leather in Startup.allowedLeathers)
                     {
                         floatMenuOptions.Add(new FloatMenuOption(leather.LabelCap, delegate
                         {
@@ -391,25 +378,18 @@ namespace OptimizationLeather
                     }
                     Find.WindowStack.Add(new FloatMenu(floatMenuOptions));
                 }
-                var enabled = disallowedAnimals.ContainsKey(thingDef) is false || disallowedAnimals[thingDef] is false;
+                bool enabled = disallowedAnimals.ContainsKey(thingDef) is false || disallowedAnimals[thingDef] is false;
                 Widgets.Checkbox(new Vector2(selectorRect.xMax + 6, selectorRect.y), ref enabled);
-                if (enabled)
-                {
-                    disallowedAnimals[thingDef] = false;
-                }
-                else
-                {
-                    disallowedAnimals[thingDef] = true;
-                }
+                disallowedAnimals[thingDef] = !enabled;
             }
 
             Widgets.EndScrollView();
 
-            var resetButton = new Rect(outRect.width / 2f - Window.CloseButSize.x / 2f, outRect.yMax + 15, Window.CloseButSize.x, Window.CloseButSize.y);
+            Rect resetButton = new Rect((outRect.width / 2f) - (Window.CloseButSize.x / 2f), outRect.yMax + 15, Window.CloseButSize.x, Window.CloseButSize.y);
             if (Widgets.ButtonText(resetButton, "Reset".Translate()))
             {
                 animalsByLeathers.Clear();
-                foreach (var def in defs)
+                foreach (ThingDef def in defs)
                 {
                     animalsByLeathers[def] = Startup.GetDefaultLeather(def);
                 }

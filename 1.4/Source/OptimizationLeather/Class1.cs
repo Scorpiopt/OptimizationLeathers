@@ -49,6 +49,7 @@ namespace OptimizationLeather
     [StaticConstructorOnStartup]
     public static class Startup
     {
+        public static bool debug = false;
         public static HashSet<ThingDef> allowedLeathers = new HashSet<ThingDef>()
         {
              OL_DefOf.Leather_Bird,
@@ -74,13 +75,6 @@ namespace OptimizationLeather
             AssignLeathers();
             RemoveLeathers();
             AssignStuff();
-            foreach (ThingDef animal in LeathersOptimizationMod.settings.animalsByLeathers.Keys.ToList())
-            {
-                if (animal != null)
-                {
-                    LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
-                }
-            }
         }
 
         public static Dictionary<string, ThingDef> leathersToConvert = new Dictionary<string, ThingDef>
@@ -90,85 +84,70 @@ namespace OptimizationLeather
             {"VFEV_Leather_Njorun", OL_DefOf.Leather_Legend },
         };
 
+        public static void Message(string message)
+        {
+            if (debug)
+            {
+                Log.Message(message);
+            }
+        }
         private static void AssignLeathers()
         {
-            bool assignedDragonLeather = false;
-            foreach (ThingDef thingDef in DefDatabase<ThingDef>.AllDefs)
+            foreach (ThingDef animal in DefDatabase<ThingDef>.AllDefs)
             {
-                if (thingDef.race != null && thingDef.race.Humanlike is false &&
-                    (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef) is false
-                    || LeathersOptimizationMod.settings.disallowedAnimals[thingDef] is false))
+                if (animal.race != null && animal.race.Humanlike is false)
                 {
-                    ThingDef leatherDef = thingDef.race.leatherDef;
-                    if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(thingDef, out ThingDef leatherDef2)
-                        && leatherDef2 != null && leatherDef2 != leatherDef)
+                    if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(animal) is false
+                    || LeathersOptimizationMod.settings.disallowedAnimals[animal] is false)
                     {
-                        SwapLeathers(thingDef, leatherDef2);
-                        if (leatherDef is null && thingDef.race.Insect)
+                        ThingDef leatherDef = animal.race.leatherDef;
+                        Message(animal + " - existing leather: " + animal.race.leatherDef + " - default: " + GetDefaultLeather(animal));
+                        if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(animal, out ThingDef leatherDef2)
+                            && leatherDef2 != null && leatherDef2 != leatherDef)
                         {
-                            thingDef.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
-                            if (thingDef.butcherProducts != null)
+                            SwapLeathers(animal, leatherDef2);
+                            if (leatherDef is null && animal.race.Insect)
                             {
-                                thingDef.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                                animal.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
                             }
                         }
-                    }
-                    else
-                    {
-                        if (leatherDef is null)
+                        else
                         {
-                            if (thingDef.race.Insect)
+                            if (leatherDef is null)
                             {
-                                SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
-                                thingDef.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
-                                if (thingDef.butcherProducts != null)
+                                if (animal.race.Insect)
                                 {
-                                    thingDef.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                                    SwapLeathers(animal, OL_DefOf.Leather_Chitin);
+                                    animal.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
+                                    if (animal.butcherProducts != null)
+                                    {
+                                        animal.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                                    }
                                 }
-                            }
-                        }
-                        else if (leatherDef != null && (!allowedLeathers.Contains(leatherDef)
-                            || leatherDef != GetDefaultLeather(thingDef)))
-                        {
-                            if (thingDef.race.leatherDef != null
-                                && leathersToConvert.TryGetValue(thingDef.race.leatherDef.defName, out ThingDef newLeather))
-                            {
-                                SwapLeathers(thingDef, newLeather);
-                            }
-                            else if (thingDef.IsDragon())
-                            {
-                                SwapLeathers(thingDef, OL_DefOf.Leather_DragonScale);
-                                assignedDragonLeather = true;
-                            }
-                            else if (thingDef.race.Insect)
-                            {
-                                SwapLeathers(thingDef, OL_DefOf.Leather_Chitin);
-                                if (thingDef.butcherProducts != null)
-                                {
-                                    thingDef.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
-                                }
-                            }
-                            else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo)
-                            {
-                                SwapLeathers(thingDef, OL_DefOf.Leather_Legend);
-                            }
-                            else if (thingDef.race.baseBodySize >= 1f)
-                            {
-                                SwapLeathers(thingDef, OL_DefOf.Leather_Heavy);
-                            }
-                            else if (thingDef.race.baseBodySize >= 0.5f)
-                            {
-                                SwapLeathers(thingDef, OL_DefOf.Leather_Plain);
                             }
                             else
                             {
-                                SwapLeathers(thingDef, OL_DefOf.Leather_Light);
+                                var defaultLeather = GetDefaultLeather(animal);
+                                if (defaultLeather != leatherDef)
+                                {
+                                    SwapLeathers(animal, defaultLeather);
+                                    if (animal.race.Insect)
+                                    {
+                                        if (animal.butcherProducts != null)
+                                        {
+                                            animal.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
+
+                    LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
                 }
             }
-            if (!assignedDragonLeather)
+
+            if (DefDatabase<ThingDef>.AllDefs.Any(x => x.race?.leatherDef == OL_DefOf.Leather_DragonScale) is false)
             {
                 allDisallowedLeathers.Add(OL_DefOf.Leather_DragonScale);
             }
@@ -204,7 +183,7 @@ namespace OptimizationLeather
         }
         public static ThingDef GetDefaultLeather(ThingDef thingDef)
         {
-            if (thingDef.race.Humanlike)
+            if (thingDef.race.Humanlike || thingDef.race.leatherDef is null || thingDef.race.leatherDef.IsLeather is false)
             {
                 return thingDef.race.leatherDef;
             }
@@ -217,26 +196,39 @@ namespace OptimizationLeather
             {
                 return newLeather;
             }
+            else if (thingDef.IsDragon())
+            {
+                return OL_DefOf.Leather_DragonScale;
+            }
+            else if (thingDef.race.Insect)
+            {
+                return OL_DefOf.Leather_Chitin;
+            }
+            else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo || thingDef.race.leatherDef == OL_DefOf.Leather_Legend)
+            {
+                return OL_DefOf.Leather_Legend;
+            }
+            else if (thingDef.race.baseBodySize >= 1f)
+            {
+                return OL_DefOf.Leather_Heavy;
+            }
+            else if (thingDef.race.baseBodySize >= 0.5f)
+            {
+                return OL_DefOf.Leather_Plain;
+            }
             else
             {
-                return thingDef.IsDragon()
-                    ? OL_DefOf.Leather_DragonScale
-                    : thingDef.race.Insect
-                                    ? OL_DefOf.Leather_Chitin
-                                    : thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo || thingDef.race.leatherDef == OL_DefOf.Leather_Legend
-                                                    ? OL_DefOf.Leather_Legend
-                                                    : thingDef.race.baseBodySize >= 1f
-                                                                    ? OL_DefOf.Leather_Heavy
-                                                                    : thingDef.race.baseBodySize >= 0.5f ? OL_DefOf.Leather_Plain : OL_DefOf.Leather_Light;
+                return OL_DefOf.Leather_Light;
             }
         }
 
         private static void SwapLeathers(ThingDef animal, ThingDef newLeather)
         {
             ThingDef oldLeather = animal.race.leatherDef;
+            Message(animal + " swapped from " + oldLeather + " to " + newLeather);
             animal.race.leatherDef = newLeather;
             CompProperties_Shearable compShearable = animal.GetCompProperties<CompProperties_Shearable>();
-            if (compShearable != null && compShearable.woolDef == oldLeather)
+            if (oldLeather != null && compShearable != null && compShearable.woolDef == oldLeather)
             {
                 compShearable.woolDef = newLeather;
             }
@@ -246,14 +238,13 @@ namespace OptimizationLeather
                 Traverse.Create(compScaleable).Field("scaleDef").SetValue(newLeather);
             }
 
-            if (!LeathersOptimizationMod.settings.animalsByLeathers.ContainsKey(animal))
+            if (oldLeather != null && !allDisallowedLeathers.Contains(oldLeather) && !allowedLeathers.Contains(oldLeather))
             {
-                LeathersOptimizationMod.settings.animalsByLeathers[animal] = newLeather;
-            }
-
-            if (!allDisallowedLeathers.Contains(oldLeather) && !allowedLeathers.Contains(oldLeather) && DefDatabase<ThingDef>.AllDefsListForReading.Contains(oldLeather))
-            {
-                allDisallowedLeathers.Add(oldLeather);
+                if (oldLeather.IsLeather)
+                {
+                    Message("Disallowed: " + oldLeather);
+                    allDisallowedLeathers.Add(oldLeather);
+                }
             }
         }
 
@@ -353,7 +344,7 @@ namespace OptimizationLeather
         public void DoSettingsWindowContents(Rect inRect)
         {
             List<ThingDef> defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.race.Humanlike is false
-                && x.race.leatherDef != null && animalsByLeathers.ContainsKey(x)).ToList();
+                && x.race.leatherDef != null).ToList();
             Rect outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - 50);
             Rect viewRect = new Rect(outRect.x, outRect.y, outRect.width - 30, scrollHeightCount);
             scrollHeightCount = 0;

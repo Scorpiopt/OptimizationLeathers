@@ -95,7 +95,7 @@ namespace OptimizationLeather
         {
             foreach (ThingDef animal in DefDatabase<ThingDef>.AllDefs)
             {
-                if (animal.race != null && animal.race.Humanlike is false)
+                if (animal.race != null && animal.race.Humanlike is false && animal.race.IsFlesh)
                 {
                     if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(animal) is false
                     || LeathersOptimizationMod.settings.disallowedAnimals[animal] is false)
@@ -142,8 +142,10 @@ namespace OptimizationLeather
                             }
                         }
                     }
-
-                    LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
+                    if (animal.race.leatherDef != null)
+                    {
+                        LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
+                    }
                 }
             }
 
@@ -183,7 +185,7 @@ namespace OptimizationLeather
         }
         public static ThingDef GetDefaultLeather(ThingDef thingDef)
         {
-            if (thingDef.race.Humanlike || thingDef.race.leatherDef is null || thingDef.race.leatherDef.IsLeather is false)
+            if (thingDef.race.Humanlike || thingDef.race.IsFlesh is false || thingDef.race.leatherDef is null || thingDef.race.leatherDef.IsLeather is false)
             {
                 return thingDef.race.leatherDef;
             }
@@ -325,6 +327,9 @@ namespace OptimizationLeather
         public override void ExposeData()
         {
             base.ExposeData();
+            if (animalsByLeathers != null)
+                animalsByLeathers.RemoveAll(x => x.Key is null || x.Value is null);
+
             Scribe_Collections.Look(ref animalsByLeathers, "animalsByLeathers", LookMode.Def, LookMode.Def);
             Scribe_Collections.Look(ref disallowedAnimals, "disallowedAnimals", LookMode.Def, LookMode.Value);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -382,7 +387,11 @@ namespace OptimizationLeather
                 animalsByLeathers.Clear();
                 foreach (ThingDef def in defs)
                 {
-                    animalsByLeathers[def] = Startup.GetDefaultLeather(def);
+                    var leather = Startup.GetDefaultLeather(def);
+                    if (leather != null)
+                    {
+                        animalsByLeathers[def] = leather;
+                    }
                 }
             }
         }

@@ -142,7 +142,12 @@ namespace OptimizationLeather
                             }
                         }
                     }
-                    if (animal.race.leatherDef != null)
+
+                    if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(animal, out var newLeather))
+                    {
+                        animal.race.leatherDef = newLeather;
+                    }
+                    else if (animal.race.leatherDef != null)
                     {
                         LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
                     }

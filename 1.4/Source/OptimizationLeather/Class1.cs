@@ -22,7 +22,7 @@ namespace OptimizationLeather
     {
         public static void Prefix(Thing __instance, ref ThingDef newStuff)
         {
-            if (Startup.allDisallowedLeathers.Contains(newStuff))
+            if (newStuff != null && Startup.allDisallowedLeathers.Contains(newStuff))
             {
                 ThingDef chosenLeather = Startup.allowedLeathers.RandomElement();
                 Log.Message("[Optimization: Leather] " + __instance + " has a forbidden stuff assigned, changing " + newStuff + " to " + chosenLeather);
@@ -97,18 +97,15 @@ namespace OptimizationLeather
             {
                 if (animal.race != null && animal.race.Humanlike is false && animal.race.IsFlesh)
                 {
-                    if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(animal) is false
-                    || LeathersOptimizationMod.settings.disallowedAnimals[animal] is false)
+                    if (LeathersOptimizationMod.settings.disallowedAnimals.Contains(animal) is false)
                     {
                         ThingDef leatherDef = animal.race.leatherDef;
                         Message(animal + " - existing leather: " + animal.race.leatherDef + " - default: " + GetDefaultLeather(animal));
-                        if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(animal, out ThingDef leatherDef2)
-                            && leatherDef2 != null && leatherDef2 != leatherDef)
+                        if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(animal, out ThingDef leatherDef2))
                         {
-                            SwapLeathers(animal, leatherDef2);
-                            if (leatherDef is null && animal.race.Insect)
+                            if (leatherDef2 != null && leatherDef2 != leatherDef)
                             {
-                                animal.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
+                                SwapLeathers(animal, leatherDef2);
                             }
                         }
                         else
@@ -118,7 +115,6 @@ namespace OptimizationLeather
                                 if (animal.race.Insect)
                                 {
                                     SwapLeathers(animal, OL_DefOf.Leather_Chitin);
-                                    animal.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
                                     if (animal.butcherProducts != null)
                                     {
                                         animal.butcherProducts.RemoveAll(x => x.thingDef.defName == "VFEI_Chitin");
@@ -141,13 +137,13 @@ namespace OptimizationLeather
                                 }
                             }
                         }
-                    }
 
-                    if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(animal, out var newLeather))
-                    {
-                        animal.race.leatherDef = newLeather;
+                        if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(animal, out var newLeather) is false)
+                        {
+                            LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
+                        }
                     }
-                    else if (animal.race.leatherDef != null)
+                    else
                     {
                         LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
                     }
@@ -160,6 +156,10 @@ namespace OptimizationLeather
             }
         }
 
+        public static List<string> birdBodies = new List<string>
+        {
+            "Bird"
+        };
         public static List<string> moddedDragonLeathers = new List<string>
         {
             "Dragon_Leather",
@@ -190,12 +190,20 @@ namespace OptimizationLeather
         }
         public static ThingDef GetDefaultLeather(ThingDef thingDef)
         {
-            if (thingDef.race.Humanlike || thingDef.race.IsFlesh is false || thingDef.race.leatherDef is null || thingDef.race.leatherDef.IsLeather is false)
+            if (LeathersOptimizationMod.settings.disallowedAnimals.Contains(thingDef))
             {
                 return thingDef.race.leatherDef;
             }
-            else if (LeathersOptimizationMod.settings.disallowedAnimals.ContainsKey(thingDef)
-                && LeathersOptimizationMod.settings.disallowedAnimals[thingDef])
+            else if (birdBodies.Contains(thingDef.race.body.defName))
+            {
+                return OL_DefOf.Leather_Bird;
+            }
+            else if (thingDef.race.Insect)
+            {
+                return OL_DefOf.Leather_Chitin;
+            }
+            else if (thingDef.race.Humanlike || thingDef.race.IsFlesh is false || thingDef.race.leatherDef is null 
+                || thingDef.race.leatherDef.IsLeather is false)
             {
                 return thingDef.race.leatherDef;
             }
@@ -206,10 +214,6 @@ namespace OptimizationLeather
             else if (thingDef.IsDragon())
             {
                 return OL_DefOf.Leather_DragonScale;
-            }
-            else if (thingDef.race.Insect)
-            {
-                return OL_DefOf.Leather_Chitin;
             }
             else if (thingDef.race.leatherDef == OL_DefOf.Leather_Thrumbo || thingDef.race.leatherDef == OL_DefOf.Leather_Legend)
             {
@@ -234,6 +238,15 @@ namespace OptimizationLeather
             ThingDef oldLeather = animal.race.leatherDef;
             Message(animal + " swapped from " + oldLeather + " to " + newLeather);
             animal.race.leatherDef = newLeather;
+            if (newLeather != null && animal.GetStatValueAbstract(StatDefOf.LeatherAmount) <= 0)
+            {
+                animal.SetStatBaseValue(StatDefOf.LeatherAmount, 40);
+            }
+            else if (newLeather is null)
+            {
+                animal.SetStatBaseValue(StatDefOf.LeatherAmount, 0);
+            }
+            LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
             CompProperties_Shearable compShearable = animal.GetCompProperties<CompProperties_Shearable>();
             if (oldLeather != null && compShearable != null && compShearable.woolDef == oldLeather)
             {
@@ -259,16 +272,19 @@ namespace OptimizationLeather
         {
             foreach (ThingDef thingDef in allDisallowedLeathers)
             {
-                DefDatabase<ThingDef>.Remove(thingDef);
-                if (thingDef.thingCategories != null)
+                if (thingDef != null)
                 {
-                    foreach (ThingCategoryDef category in thingDef.thingCategories)
+                    DefDatabase<ThingDef>.Remove(thingDef);
+                    if (thingDef.thingCategories != null)
                     {
-                        category.childThingDefs.Remove(thingDef);
+                        foreach (ThingCategoryDef category in thingDef.thingCategories)
+                        {
+                            category.childThingDefs.Remove(thingDef);
+                        }
                     }
                 }
             }
-            PawnApparelGenerator.allApparelPairs.RemoveAll(x => allDisallowedLeathers.Contains(x.stuff));
+            PawnApparelGenerator.allApparelPairs.RemoveAll(x => x.stuff != null && allDisallowedLeathers.Contains(x.stuff));
         }
         private static bool UsedInRecipe(this ThingDef leatherDef)
         {
@@ -327,7 +343,7 @@ namespace OptimizationLeather
 
     public class LeathersOptimizationSettings : ModSettings
     {
-        public Dictionary<ThingDef, bool> disallowedAnimals = new Dictionary<ThingDef, bool>();
+        public HashSet<ThingDef> disallowedAnimals = new HashSet<ThingDef>();
         public Dictionary<ThingDef, ThingDef> animalsByLeathers = new Dictionary<ThingDef, ThingDef>();
         public override void ExposeData()
         {
@@ -336,7 +352,7 @@ namespace OptimizationLeather
                 animalsByLeathers.RemoveAll(x => x.Key is null || x.Value is null);
 
             Scribe_Collections.Look(ref animalsByLeathers, "animalsByLeathers", LookMode.Def, LookMode.Def);
-            Scribe_Collections.Look(ref disallowedAnimals, "disallowedAnimals", LookMode.Def, LookMode.Value);
+            Scribe_Collections.Look(ref disallowedAnimals, "disallowedAnimals", LookMode.Def);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (animalsByLeathers is null)
@@ -345,7 +361,7 @@ namespace OptimizationLeather
                 }
                 if (disallowedAnimals is null)
                 {
-                    disallowedAnimals = new Dictionary<ThingDef, bool>();
+                    disallowedAnimals = new HashSet<ThingDef>();
                 }
             }
         }
@@ -353,8 +369,8 @@ namespace OptimizationLeather
         private int scrollHeightCount = 0;
         public void DoSettingsWindowContents(Rect inRect)
         {
-            List<ThingDef> defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.race.Humanlike is false
-                && x.race.leatherDef != null).ToList();
+            List<ThingDef> defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.race.Humanlike is false 
+            && x.race.Dryad is false && x.race.IsFlesh).ToList();
             Rect outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - 50);
             Rect viewRect = new Rect(outRect.x, outRect.y, outRect.width - 30, scrollHeightCount);
             scrollHeightCount = 0;
@@ -367,9 +383,16 @@ namespace OptimizationLeather
                 Rect labelRect = new Rect(outRect.x, pos + (num * 24), inRect.width - 150 - 30 - 30, 24);
                 Widgets.Label(labelRect, thingDef.LabelCap);
                 Rect selectorRect = new Rect(labelRect.xMax, labelRect.y, 150, 24);
-                if (Widgets.ButtonText(selectorRect, animalsByLeathers[thingDef].LabelCap))
+                var leatherLabel = animalsByLeathers.ContainsKey(thingDef) ? 
+                    animalsByLeathers[thingDef]?.LabelCap ?? "None".Translate() 
+                    : thingDef.race.leatherDef != null ? thingDef.race.leatherDef.LabelCap : "None".Translate();
+                if (Widgets.ButtonText(selectorRect, leatherLabel))
                 {
                     List<FloatMenuOption> floatMenuOptions = new List<FloatMenuOption>();
+                    floatMenuOptions.Add(new FloatMenuOption("None".Translate(), delegate
+                    {
+                        animalsByLeathers[thingDef] = null;
+                    }));
                     foreach (ThingDef leather in Startup.allowedLeathers)
                     {
                         floatMenuOptions.Add(new FloatMenuOption(leather.LabelCap, delegate
@@ -379,9 +402,16 @@ namespace OptimizationLeather
                     }
                     Find.WindowStack.Add(new FloatMenu(floatMenuOptions));
                 }
-                bool enabled = disallowedAnimals.ContainsKey(thingDef) is false || disallowedAnimals[thingDef] is false;
+                bool enabled = disallowedAnimals.Contains(thingDef) is false;
                 Widgets.Checkbox(new Vector2(selectorRect.xMax + 6, selectorRect.y), ref enabled);
-                disallowedAnimals[thingDef] = !enabled;
+                if (enabled)
+                {
+                    disallowedAnimals.Remove(thingDef);
+                }
+                else
+                {
+                    disallowedAnimals.Add(thingDef);
+                }
             }
 
             Widgets.EndScrollView();
@@ -389,6 +419,7 @@ namespace OptimizationLeather
             Rect resetButton = new Rect((outRect.width / 2f) - (Window.CloseButSize.x / 2f), outRect.yMax + 15, Window.CloseButSize.x, Window.CloseButSize.y);
             if (Widgets.ButtonText(resetButton, "Reset".Translate()))
             {
+                disallowedAnimals.Clear();
                 animalsByLeathers.Clear();
                 foreach (ThingDef def in defs)
                 {

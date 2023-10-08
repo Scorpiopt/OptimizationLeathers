@@ -7,13 +7,17 @@ using Verse;
 
 namespace OptimizationLeather
 {
-    [StaticConstructorOnStartup]
-    public static class HarmonyPatches
+    [HarmonyPatch(typeof(ThingMaker), "MakeThing")]
+    public static class Patch_MakeThing
     {
-        static HarmonyPatches()
+        public static void Prefix(ThingDef def, ref ThingDef stuff)
         {
-            Harmony harmony = new Harmony("OptimizationLeather.Mod");
-            harmony.PatchAll();
+            if (stuff != null && LeatherOptimization.allDisallowedLeathers.Contains(stuff))
+            {
+                var newStuff = GenStuff.DefaultStuffFor(def);
+                LeatherOptimization.Message("Spawned " + stuff + " fixing with " + newStuff + " - allDisallowedLeathers: " + LeatherOptimization.allDisallowedLeathers.Contains(newStuff));
+                stuff = newStuff;
+            }
         }
     }
 
@@ -22,11 +26,11 @@ namespace OptimizationLeather
     {
         public static void Prefix(Thing __instance, ref ThingDef newStuff)
         {
-            if (newStuff != null && Startup.allDisallowedLeathers.Contains(newStuff))
+            if (newStuff != null && LeatherOptimization.allDisallowedLeathers.Contains(newStuff))
             {
-                ThingDef chosenLeather = Startup.allowedLeathers.RandomElement();
-                Log.Message("[Optimization: Leather] " + __instance + " has a forbidden stuff assigned, changing " + newStuff + " to " + chosenLeather);
-                newStuff = chosenLeather;
+                var newStuff2 = GenStuff.DefaultStuffFor(__instance.def);
+                LeatherOptimization.Message("2 Spawned " + newStuff + " fixing with " + newStuff + " - allDisallowedLeathers: " + LeatherOptimization.allDisallowedLeathers.Contains(newStuff2));
+                newStuff = newStuff2;
             }
         }
     }
@@ -46,8 +50,17 @@ namespace OptimizationLeather
         public static ThingDef Leather_DragonScale;
         public static StuffCategoryDef Chitin;
     }
-    [StaticConstructorOnStartup]
-    public static class Startup
+
+    [HarmonyPatch(typeof(PlayerKnowledgeDatabase), "ReloadAndRebind")]
+    public static class Patch_ResetStaticData
+    {
+        public static void Prefix()
+        {
+            LeatherOptimization.DoOptimization();
+        }
+    }
+
+    public static class LeatherOptimization
     {
         public static bool debug = false;
         public static HashSet<ThingDef> allowedLeathers = new HashSet<ThingDef>()
@@ -64,13 +77,15 @@ namespace OptimizationLeather
         };
 
         public static HashSet<ThingDef> allDisallowedLeathers = new HashSet<ThingDef>();
-        static Startup()
+
+        public static void DoOptimization()
         {
             LeathersOptimizationMod.settings = LoadedModManager.GetMod<LeathersOptimizationMod>().GetSettings<LeathersOptimizationSettings>();
-            ApplySettings();
+            ApplyLeatherOptimizations();
             LoadedModManager.GetMod<LeathersOptimizationMod>().WriteSettings();
         }
-        public static void ApplySettings()
+
+        public static void ApplyLeatherOptimizations()
         {
             AssignLeathers();
             RemoveLeathers();
@@ -95,7 +110,7 @@ namespace OptimizationLeather
         {
             foreach (ThingDef animal in DefDatabase<ThingDef>.AllDefs)
             {
-                if (animal.race != null && animal.race.Humanlike is false && animal.race.IsFlesh)
+                if (animal.race != null && animal.race.Humanlike is false && animal.race.IsFlesh && !animal.race.Dryad)
                 {
                     if (LeathersOptimizationMod.settings.disallowedAnimals.Contains(animal) is false)
                     {
@@ -321,7 +336,7 @@ namespace OptimizationLeather
         public static LeathersOptimizationSettings settings;
         public LeathersOptimizationMod(ModContentPack pack) : base(pack)
         {
-
+            new Harmony("LeathersOptimizationMod").PatchAll();
         }
         public override void DoSettingsWindowContents(Rect inRect)
         {
@@ -336,7 +351,7 @@ namespace OptimizationLeather
 
         public override void WriteSettings()
         {
-            Startup.ApplySettings();
+            LeatherOptimization.ApplyLeatherOptimizations();
             base.WriteSettings();
         }
     }
@@ -393,7 +408,7 @@ namespace OptimizationLeather
                     {
                         animalsByLeathers[thingDef] = null;
                     }));
-                    foreach (ThingDef leather in Startup.allowedLeathers)
+                    foreach (ThingDef leather in LeatherOptimization.allowedLeathers)
                     {
                         floatMenuOptions.Add(new FloatMenuOption(leather.LabelCap, delegate
                         {
@@ -423,7 +438,7 @@ namespace OptimizationLeather
                 animalsByLeathers.Clear();
                 foreach (ThingDef def in defs)
                 {
-                    var leather = Startup.GetDefaultLeather(def);
+                    var leather = LeatherOptimization.GetDefaultLeather(def);
                     if (leather != null)
                     {
                         animalsByLeathers[def] = leather;

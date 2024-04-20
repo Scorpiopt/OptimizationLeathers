@@ -96,9 +96,10 @@
 			<color>(140,30,30)</color>
 			<commonality>0</commonality>
 			<constructEffect>ConstructMetal</constructEffect>
-			<soundImpactStuff>BulletImpact_Metal</soundImpactStuff>
+			<soundImpactBullet>BulletImpact_Metal</soundImpactBullet>
 			<soundMeleeHitSharp>MeleeHit_Metal_Sharp</soundMeleeHitSharp>
 			<soundMeleeHitBlunt>MeleeHit_Metal_Blunt</soundMeleeHitBlunt>
+			<soundImpactMelee>MeleeHit_Metal_Blunt</soundImpactMelee>
 			<statOffsets>
 				<Beauty>7</Beauty>
 			</statOffsets>

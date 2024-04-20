@@ -1,0 +1,5 @@
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\OptimizationLeathers\1.5\Assemblies\OptimizationLeather.dll
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\OptimizationLeathers\1.5\Source\OptimizationLeather\obj\Debug\OptimizationLeather.csproj.AssemblyReference.cache
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\OptimizationLeathers\1.5\Source\OptimizationLeather\obj\Debug\OptimizationLeather.csproj.CoreCompileInputs.cache
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\OptimizationLeathers\1.5\Source\OptimizationLeather\obj\Debug\Optimiza.376063E7.Up2Date
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\OptimizationLeathers\1.5\Source\OptimizationLeather\obj\Debug\OptimizationLeather.dll

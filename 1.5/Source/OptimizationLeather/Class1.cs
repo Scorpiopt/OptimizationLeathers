@@ -2,6 +2,7 @@
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using Verse;
 
@@ -108,6 +109,37 @@ namespace OptimizationLeather
         }
         private static void AssignLeathers()
         {
+            foreach (var race in DefDatabase<ThingDef>.AllDefs.Where(x => x.race?.leatherDef != null))
+            {
+                if (ModsConfig.AnomalyActive && race.race.FleshType == FleshTypeDefOf.EntityFlesh)
+                {
+                    allowedLeathers.Add(race.race.leatherDef);
+                }
+                else if (race.race.Humanlike)
+                {
+                    allowedLeathers.Add(race.race.leatherDef);
+                }
+            }
+
+            foreach (var gene in DefDatabase<GeneDef>.AllDefs.Where(x => x.modExtensions != null))
+            {
+                foreach (var extension in gene.modExtensions)
+                {
+                    if (extension.GetType().Name == "GeneExtension")
+                    {
+                        var customLeatherField = extension.GetType().GetField("customLeatherThingDef", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        if (customLeatherField != null)
+                        {
+                            var customLeatherThingDef = customLeatherField.GetValue(extension) as ThingDef;
+                            if (customLeatherThingDef != null)
+                            {
+                                allowedLeathers.Add(customLeatherThingDef);
+                            }
+                        }
+                    }
+                }
+            }
+
             foreach (ThingDef animal in DefDatabase<ThingDef>.AllDefs)
             {
                 if (animal.race != null && animal.race.Humanlike is false && animal.race.IsFlesh && !animal.race.Dryad)
@@ -115,8 +147,16 @@ namespace OptimizationLeather
                     if (LeathersOptimizationMod.settings.disallowedAnimals.Contains(animal) is false)
                     {
                         ThingDef leatherDef = animal.race.leatherDef;
-                        Message(animal + " - existing leather: " + animal.race.leatherDef + " - default: " + GetDefaultLeather(animal));
-                        if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(animal, out ThingDef leatherDef2))
+                        Message(animal + " - existing leather: " + animal.race.leatherDef 
+                            + " - default: " + GetDefaultLeather(animal) + " - allowed" + allowedLeathers.Contains(leatherDef));
+                        if (LeathersOptimizationMod.settings.animalsByLeathers.TryGetValue(animal, out var value) 
+                            && allowedLeathers.Contains(value) is false)
+                        {
+                            LeathersOptimizationMod.settings.animalsByLeathers.Remove(animal);
+                        }
+
+                        if (LeathersOptimizationMod.settings.animalsByLeathers
+                            .TryGetValue(animal, out ThingDef leatherDef2))
                         {
                             if (leatherDef2 != null && leatherDef2 != leatherDef)
                             {
@@ -205,6 +245,10 @@ namespace OptimizationLeather
         }
         public static ThingDef GetDefaultLeather(ThingDef thingDef)
         {
+            if (thingDef.race.leatherDef != null && allowedLeathers.Contains(thingDef.race.leatherDef))
+            {
+                return thingDef.race.leatherDef;
+            }
             if (LeathersOptimizationMod.settings.disallowedAnimals.Contains(thingDef))
             {
                 return thingDef.race.leatherDef;
@@ -384,8 +428,8 @@ namespace OptimizationLeather
         private int scrollHeightCount = 0;
         public void DoSettingsWindowContents(Rect inRect)
         {
-            List<ThingDef> defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.race.Humanlike is false 
-            && x.race.Dryad is false && x.race.IsFlesh).ToList();
+            List<ThingDef> defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.IsCorpse is false 
+            && x.race.Humanlike is false && x.race.Dryad is false && x.race.IsFlesh).ToList();
             Rect outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - 50);
             Rect viewRect = new Rect(outRect.x, outRect.y, outRect.width - 30, scrollHeightCount);
             scrollHeightCount = 0;

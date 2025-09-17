@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,7 +63,7 @@ namespace OptimizationLeather
 
     public static class LeatherOptimization
     {
-        public static bool debug = false;
+        public static bool debug = true;
         public static HashSet<ThingDef> allowedLeathers = new HashSet<ThingDef>()
         {
              OL_DefOf.Leather_Bird,
@@ -78,12 +78,20 @@ namespace OptimizationLeather
         };
 
         public static HashSet<ThingDef> allDisallowedLeathers = new HashSet<ThingDef>();
+        public static Dictionary<ThingDef, ThingDef> originalLeathers = new Dictionary<ThingDef, ThingDef>();
+        public static HashSet<ThingDef> leathersToKeep = new HashSet<ThingDef>();
 
         public static void DoOptimization()
         {
+            if (!originalLeathers.Any())
+            {
+                foreach (var race in DefDatabase<ThingDef>.AllDefs.Where(x => x.race?.leatherDef != null))
+                {
+                    originalLeathers[race] = race.race.leatherDef;
+                }
+            }
             LeathersOptimizationMod.settings = LoadedModManager.GetMod<LeathersOptimizationMod>().GetSettings<LeathersOptimizationSettings>();
             ApplyLeatherOptimizations();
-            LoadedModManager.GetMod<LeathersOptimizationMod>().WriteSettings();
         }
 
         public static void ApplyLeatherOptimizations()
@@ -109,6 +117,15 @@ namespace OptimizationLeather
         }
         private static void AssignLeathers()
         {
+            allDisallowedLeathers.Clear();
+            leathersToKeep.Clear();
+            foreach (var animal in LeathersOptimizationMod.settings.disallowedAnimals)
+            {
+                if (originalLeathers.TryGetValue(animal, out var leather))
+                {
+                    leathersToKeep.Add(leather);
+                }
+            }
             foreach (var race in DefDatabase<ThingDef>.AllDefs.Where(x => x.race?.leatherDef != null))
             {
                 if (ModsConfig.AnomalyActive && race.race.FleshType == FleshTypeDefOf.EntityFlesh)
@@ -142,7 +159,7 @@ namespace OptimizationLeather
 
             foreach (ThingDef animal in DefDatabase<ThingDef>.AllDefs)
             {
-                if (animal.race != null && animal.race.Humanlike is false && animal.race.IsFlesh && !animal.race.Dryad)
+                if (animal.race != null && animal.race.Humanlike is false && animal.race.IsFlesh && !animal.race.Dryad && animal.IsCorpse is false)
                 {
                     if (LeathersOptimizationMod.settings.disallowedAnimals.Contains(animal) is false)
                     {
@@ -200,6 +217,11 @@ namespace OptimizationLeather
                     }
                     else
                     {
+                        if (originalLeathers.TryGetValue(animal, out var originalLeather) && animal.race.leatherDef != originalLeather)
+                        {
+                            Message($"[LeatherOptimization] Reverting leather for disabled animal {animal.defName}: {animal.race.leatherDef?.defName} -> {originalLeather?.defName}");
+                            animal.race.leatherDef = originalLeather;
+                        }
                         LeathersOptimizationMod.settings.animalsByLeathers[animal] = animal.race.leatherDef;
                     }
                 }
@@ -251,7 +273,7 @@ namespace OptimizationLeather
             }
             if (LeathersOptimizationMod.settings.disallowedAnimals.Contains(thingDef))
             {
-                return thingDef.race.leatherDef;
+                return originalLeathers.TryGetValue(thingDef, out var leather) ? leather : thingDef.race.leatherDef;
             }
             else if (birdBodies.Contains(thingDef.race.body.defName))
             {
@@ -317,7 +339,7 @@ namespace OptimizationLeather
                 Traverse.Create(compScaleable).Field("scaleDef").SetValue(newLeather);
             }
 
-            if (oldLeather != null && !allDisallowedLeathers.Contains(oldLeather) && !allowedLeathers.Contains(oldLeather))
+            if (oldLeather != null && !allDisallowedLeathers.Contains(oldLeather) && !allowedLeathers.Contains(oldLeather) && !leathersToKeep.Contains(oldLeather))
             {
                 if (oldLeather.IsLeather)
                 {
@@ -430,6 +452,13 @@ namespace OptimizationLeather
         {
             List<ThingDef> defs = DefDatabase<ThingDef>.AllDefs.Where(x => x.race != null && x.IsCorpse is false 
             && x.race.Humanlike is false && x.race.Dryad is false && x.race.IsFlesh).ToList();
+            foreach (var animal in defs)
+            {
+                if (!animalsByLeathers.ContainsKey(animal))
+                {
+                    animalsByLeathers[animal] = LeatherOptimization.GetDefaultLeather(animal);
+                }
+            }
             Rect outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height - 50);
             Rect viewRect = new Rect(outRect.x, outRect.y, outRect.width - 30, scrollHeightCount);
             scrollHeightCount = 0;

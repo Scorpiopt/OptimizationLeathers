@@ -63,7 +63,7 @@ namespace OptimizationLeather
 
     public static class LeatherOptimization
     {
-        public static bool debug = true;
+        public static bool debug = false;
         public static HashSet<ThingDef> allowedLeathers = new HashSet<ThingDef>()
         {
              OL_DefOf.Leather_Bird,
